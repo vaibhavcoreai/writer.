@@ -9,7 +9,6 @@ import {
     where,
     getDocs,
     limit,
-    orderBy,
     doc,
     updateDoc,
     serverTimestamp
@@ -98,15 +97,26 @@ const ProfilePage = () => {
                     const writingsRef = collection(db, "stories");
                     const qWritings = query(
                         writingsRef,
-                        where("authorId", "==", targetUid),
-                        orderBy("updatedAt", "desc")
+                        where("authorId", "==", targetUid)
                     );
                     const writingsSnap = await getDocs(qWritings);
-                    const allWritings = writingsSnap.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data(),
-                        date: doc.data().updatedAt?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'Just now'
-                    }));
+                    let allWritings = writingsSnap.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            id: doc.id,
+                            ...data,
+                            date: data.updatedAt?.toDate
+                                ? data.updatedAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                : 'Just now'
+                        };
+                    });
+
+                    // Sort client-side
+                    allWritings.sort((a, b) => {
+                        const timeA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : 0;
+                        const timeB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : 0;
+                        return timeB - timeA;
+                    });
 
                     const viewWritings = (targetUid === currentUser?.uid) ? allWritings : allWritings.filter(w => w.status === 'published');
                     setUserWritings(viewWritings);
@@ -246,15 +256,15 @@ const ProfilePage = () => {
                                     to={`/read/${writing.id}`}
                                     key={writing.id}
                                     className={`group flex items-center justify-between p-6 bg-paper border border-white/40 rounded-2xl shadow-soft hover:shadow-xl transition-all
-                                        ${loaded ? 'animate-reveal' : 'opacity-0'}
-                                    `}
+                                            ${loaded ? 'animate-reveal' : 'opacity-0'}
+                                        `}
                                     style={{ animationDelay: `${0.8 + index * 0.1}s` }}
                                 >
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-3">
                                             <span className={`text-[10px] uppercase tracking-widest font-bold 
-                                                ${writing.status === 'published' ? 'text-green-600/60' : 'text-amber-600/60'}
-                                            `}>
+                                                    ${writing.status === 'published' ? 'text-green-600/60' : 'text-amber-600/60'}
+                                                `}>
                                                 {writing.status}
                                             </span>
                                             <span className="text-ink-lighter font-serif italic text-xs">{writing.date}</span>

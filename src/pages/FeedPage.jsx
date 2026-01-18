@@ -21,22 +21,35 @@ const FeedPage = () => {
     useEffect(() => {
         const fetchFeed = async () => {
             try {
+                // Fetch published stories (moving sorting to client-side to avoid index requirement)
                 const q = query(
                     collection(db, "stories"),
-                    where("status", "==", "published"),
-                    orderBy("updatedAt", "desc"),
-                    limit(50)
+                    where("status", "==", "published")
                 );
 
                 const querySnapshot = await getDocs(q);
-                const fetchedStories = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                    date: doc.data().updatedAt?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'Just now',
-                    readTime: '3 min' // You can calculate this based on content length later
-                }));
+                let fetchedStories = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        // Safely handle updatedAt for formatting
+                        date: data.updatedAt?.toDate
+                            ? data.updatedAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                            : 'Just now',
+                        readTime: '3 min'
+                    };
+                });
 
-                setPublicFeed(fetchedStories);
+                // Client-side Sort
+                fetchedStories.sort((a, b) => {
+                    const timeA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : 0;
+                    const timeB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                // Limit to 50 for performance
+                setPublicFeed(fetchedStories.slice(0, 50));
             } catch (error) {
                 console.error("Error fetching feed:", error);
             } finally {

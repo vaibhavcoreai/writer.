@@ -28,16 +28,27 @@ const DraftsPage = () => {
             const q = query(
                 collection(db, "stories"),
                 where("authorId", "==", user.uid),
-                where("status", "==", "draft"),
-                orderBy("updatedAt", "desc")
+                where("status", "==", "draft")
             );
 
             const querySnapshot = await getDocs(q);
-            const fetchedDrafts = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                date: doc.data().updatedAt?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'Just now'
-            }));
+            let fetchedDrafts = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    date: data.updatedAt?.toDate
+                        ? data.updatedAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : 'Just now'
+                };
+            });
+
+            // Client-side Sort
+            fetchedDrafts.sort((a, b) => {
+                const timeA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : 0;
+                const timeB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : 0;
+                return timeB - timeA;
+            });
 
             setDrafts(fetchedDrafts);
         } catch (error) {
