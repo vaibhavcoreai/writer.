@@ -24,15 +24,15 @@ export const UIProvider = ({ children }) => {
         const willBeDark = !darkMode;
         setThemeAnimation(willBeDark ? 'sunset' : 'sunrise');
 
-        // Delay the actual class toggle to peak of diagonal wave (approx 1.5s)
+        // Faster toggle (approx 0.5s instead of 1.5s)
         setTimeout(() => {
             setDarkMode(willBeDark);
-        }, 1500);
+        }, 500);
 
-        // Clear animation after it finishes (3s)
+        // Clear animation faster (1.2s instead of 3s)
         setTimeout(() => {
             setThemeAnimation(null);
-        }, 3000);
+        }, 1200);
     };
 
     const toggleFocusMode = () => setFocusMode(!focusMode);
