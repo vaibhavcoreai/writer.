@@ -8,7 +8,10 @@ import {
     query,
     where,
     getDocs,
-    orderBy
+    orderBy,
+    doc,
+    updateDoc,
+    serverTimestamp
 } from 'firebase/firestore';
 
 const ProfilePage = () => {
@@ -73,6 +76,42 @@ const ProfilePage = () => {
             }
         }
     }, [user, loading, navigate]);
+
+    const moveToDraft = async (e, writingId) => {
+        e.stopPropagation();
+        if (!window.confirm("Move this back to drafts? It will be hidden from the public feed.")) return;
+
+        try {
+            const docRef = doc(db, "stories", writingId);
+            await updateDoc(docRef, {
+                status: 'draft',
+                updatedAt: serverTimestamp()
+            });
+
+            // Update local state
+            setUserWritings(prev => prev.map(w =>
+                w.id === writingId ? { ...w, status: 'draft' } : w
+            ));
+
+            // Recalculate stats
+            const updatedWritings = userWritings.map(w =>
+                w.id === writingId ? { ...w, status: 'draft' } : w
+            );
+            const storiesCount = updatedWritings.filter(w => (w.type?.toLowerCase() === 'story' || !w.type) && w.status === 'published').length;
+            const poemsCount = updatedWritings.filter(w => w.type?.toLowerCase() === 'poem' && w.status === 'published').length;
+            const draftsCount = updatedWritings.filter(w => w.status === 'draft').length;
+
+            setStats([
+                { label: 'Stories', value: storiesCount },
+                { label: 'Poems', value: poemsCount },
+                { label: 'Drafts', value: draftsCount },
+            ]);
+
+        } catch (error) {
+            console.error("Error moving to draft:", error);
+            alert("Failed to move to draft.");
+        }
+    };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(profileUrl);
@@ -192,6 +231,15 @@ const ProfilePage = () => {
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
                                         </button>
+                                        {writing.status === 'published' && (
+                                            <button
+                                                onClick={(e) => moveToDraft(e, writing.id)}
+                                                className="p-3 rounded-full hover:bg-black/5 text-ink-light"
+                                                title="Move to Draft"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8" /><path d="m16 6-4 4-4-4" /><rect width="20" height="8" x="2" y="14" rx="2" /></svg>
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => navigate(`/write?id=${writing.id}`)}
                                             className="p-3 rounded-full hover:bg-black/5 text-ink-light"

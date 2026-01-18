@@ -2,14 +2,32 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 const ReadPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [story, setStory] = useState(null);
     const [loading, setLoading] = useState(true);
     const [loaded, setLoaded] = useState(false);
+
+    const unpublishStory = async () => {
+        if (!window.confirm("Move this back to drafts? It will no longer be visible in the public library.")) return;
+
+        try {
+            const docRef = doc(db, "stories", id);
+            await updateDoc(docRef, {
+                status: 'draft',
+                updatedAt: serverTimestamp()
+            });
+            navigate('/drafts');
+        } catch (error) {
+            console.error("Error unpublishing:", error);
+            alert("Failed to move to drafts.");
+        }
+    };
 
     useEffect(() => {
         const fetchStory = async () => {
@@ -62,11 +80,28 @@ const ReadPage = () => {
                             {story.title}
                         </h1>
 
-                        <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-4">
                             <span className="text-xs font-bold uppercase tracking-widest text-ink/70">By {story.authorName}</span>
                             <span className="text-[10px] uppercase tracking-widest text-ink-lighter font-medium italic">
                                 Published on {story.updatedAt?.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                             </span>
+
+                            {user && user.uid === story.authorId && (
+                                <div className="flex gap-4 mt-4">
+                                    <button
+                                        onClick={() => navigate(`/write?id=${id}`)}
+                                        className="text-[10px] uppercase tracking-widest font-bold text-ink-light px-4 py-2 rounded-full border border-ink-lighter/20 hover:bg-black/5"
+                                    >
+                                        Edit Story
+                                    </button>
+                                    <button
+                                        onClick={unpublishStory}
+                                        className="text-[10px] uppercase tracking-widest font-bold text-red-500/60 px-4 py-2 rounded-full border border-red-500/10 hover:bg-red-50/50"
+                                    >
+                                        Move to Drafts
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </header>
 
