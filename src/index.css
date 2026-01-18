@@ -1,0 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Roboto+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;500&display=swap');
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root {
+    --color-paper: #F9F8F4;
+    --color-paper-dark: #F0EFE9;
+    --color-ink: #2C2C2C;
+    --color-ink-light: #5A5A5A;
+    --color-ink-lighter: #8C8C8C;
+  }
+
+  .dark {
+    --color-paper: #1A1A17;
+    --color-paper-dark: #242421;
+    --color-ink: #EAE9E4;
+    --color-ink-light: #B5B4AF;
+    --color-ink-lighter: #5C5B56;
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.tiptap {
+  min-height: 500px;
+  cursor: text;
+}
+
+.tiptap-editor-wrapper {
+  cursor: text;
+  width: 100%;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--color-ink-lighter);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Animations and Transitions */
+
+@keyframes slideUpCover {
+  0% {
+    transform: translateY(100%);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDownReveal {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes slideUpReveal {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes revealSlow {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes inkReveal {
+  0% {
+    opacity: 0;
+    filter: blur(15px);
+    letter-spacing: 0.15em;
+    transform: scale(1.02);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    letter-spacing: normal;
+    transform: scale(1);
+  }
+}
+
+@keyframes sunriseDiagonal {
+  0% {
+    clip-path: circle(0% at 0% 100%);
+    background: linear-gradient(45deg, #fceabb 0%, #f8b500 100%);
+  }
+
+  60% {
+    clip-path: circle(150% at 0% 100%);
+    background: linear-gradient(45deg, #F9F8F4 0%, #F0EFE9 100%);
+    opacity: 1;
+  }
+
+  100% {
+    clip-path: circle(150% at 0% 100%);
+    opacity: 0;
+  }
+}
+
+@keyframes sunsetDiagonal {
+  0% {
+    clip-path: circle(0% at 0% 100%);
+    background: linear-gradient(45deg, #100b32 0%, #000000 100%);
+  }
+
+  60% {
+    clip-path: circle(150% at 0% 100%);
+    background: linear-gradient(45deg, #1A1A17 0%, #242421 100%);
+    opacity: 1;
+  }
+
+  100% {
+    clip-path: circle(150% at 0% 100%);
+    opacity: 0;
+  }
+}
+
+.animate-ink {
+  animation: inkReveal 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-reveal {
+  animation: revealSlow 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-1 {
+  animation-delay: 0.3s;
+}
+
+.stagger-2 {
+  animation-delay: 0.6s;
+}
+
+.stagger-3 {
+  animation-delay: 0.9s;
+}
+
+.stagger-header {
+  animation-delay: 0s;
+}
+
+.stagger-body {
+  animation-delay: 0.5s;
+}
+
+.theme-transition-sunrise {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  animation: sunriseDiagonal 3s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.theme-transition-sunset {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  animation: sunsetDiagonal 3s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.page-transition-panel {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-ink);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.page-transition-panel.cover {
+  animation: slideUpCover 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.page-transition-panel.reveal {
+  animation: slideDownReveal 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.paper-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.dark .paper-grain {
+  mix-blend-mode: screen;
+  opacity: 0.06;
+}

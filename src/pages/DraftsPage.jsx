@@ -1,0 +1,129 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import NavBar from '../components/NavBar';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../firebase';
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    orderBy
+} from 'firebase/firestore';
+
+const DraftsPage = () => {
+    const { user, loading } = useAuth();
+    const navigate = useNavigate();
+    const [drafts, setDrafts] = useState([]);
+    const [isFetching, setIsFetching] = useState(true);
+    const [loaded, setLoaded] = useState(false);
+
+    // Fetch drafts from Firestore
+    useEffect(() => {
+        const fetchDrafts = async () => {
+            if (!user) return;
+
+            try {
+                const q = query(
+                    collection(db, "stories"),
+                    where("authorId", "==", user.uid),
+                    where("status", "==", "draft"),
+                    orderBy("updatedAt", "desc")
+                );
+
+                const querySnapshot = await getDocs(q);
+                const fetchedDrafts = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    date: doc.data().updatedAt?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'Just now'
+                }));
+
+                setDrafts(fetchedDrafts);
+            } catch (error) {
+                console.error("Error fetching drafts:", error);
+            } finally {
+                setIsFetching(false);
+                setLoaded(true);
+            }
+        };
+
+        if (!loading) {
+            if (user) {
+                fetchDrafts();
+            } else {
+                navigate('/login');
+            }
+        }
+    }, [user, loading, navigate]);
+
+    if (!user) return null;
+
+    return (
+        <div className="min-h-screen bg-paper text-ink selection:bg-ink-light selection:text-paper font-sans">
+
+            {/* Background Texture */}
+            <div className="fixed inset-0 opacity-[0.015] pointer-events-none z-0"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
+            </div>
+
+            <NavBar loaded={loaded} />
+
+            <main className="relative z-10 flex flex-col items-center min-h-screen px-6 py-32 md:py-48 max-w-4xl mx-auto">
+
+                <header className={`text-center mb-16 ${loaded ? 'animate-ink stagger-header' : 'opacity-0'}`}>
+                    <h2 className="font-serif text-4xl md:text-5xl mb-4 tracking-tight text-ink">Continue Writing</h2>
+                    <p className="text-ink-light font-serif italic text-lg max-w-md mx-auto leading-relaxed">
+                        Pick up your pen right where you left it. Your stories are waiting.
+                    </p>
+                </header>
+
+                <div className="w-full space-y-4">
+                    {isFetching ? (
+                        <div className="flex justify-center py-20">
+                            <div className="w-6 h-6 border-2 border-ink-lighter border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    ) : drafts.length > 0 ? (
+                        drafts.map((draft, index) => (
+                            <div
+                                key={draft.id}
+                                onClick={() => navigate(`/write?id=${draft.id}`)}
+                                className={`group flex flex-col md:flex-row md:items-center justify-between p-6 md:px-8 bg-paper border border-white/40 rounded-xl shadow-soft hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer 
+                                    ${loaded ? 'animate-reveal' : 'opacity-0'}
+                                `}
+                                style={{ animationDelay: `${0.6 + index * 0.1}s` }}
+                            >
+                                <div className="space-y-1">
+                                    <h3 className="text-xl font-serif font-medium text-ink group-hover:text-ink transition-colors">
+                                        {draft.title || 'Untitled Draft'}
+                                    </h3>
+                                    <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-ink-lighter font-bold">
+                                        <span>Last edited: {draft.date}</span>
+                                        <span className="opacity-30">•</span>
+                                        <span>{draft.chapters?.length || 1} Chapters</span>
+                                    </div>
+                                </div>
+
+                                <button className="mt-4 md:mt-0 text-[10px] uppercase tracking-[0.2em] font-bold text-ink-lighter group-hover:text-ink transition-colors flex items-center gap-2">
+                                    <span>Open Notebook</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-20 border border-dashed border-ink-lighter/10 rounded-3xl animate-reveal stagger-2">
+                            <p className="text-ink-lighter font-serif italic mb-6">No drafts found. The page is waiting for your touch.</p>
+                            <button
+                                onClick={() => navigate('/choose-type')}
+                                className="px-6 py-2 bg-ink text-paper rounded-full text-[10px] uppercase tracking-widest font-bold hover:scale-105 transition-all shadow-soft"
+                            >
+                                Start Writing
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default DraftsPage;
