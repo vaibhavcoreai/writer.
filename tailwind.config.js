@@ -1,3 +1,5 @@
+import typography from '@tailwindcss/typography';
+
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [
@@ -58,7 +60,7 @@ export default {
                 warm: {
                     100: '#F5F5F1',
                     200: '#EBEBE6',
-                    300: '#DMD9D2',
+                    300: '#D4D9D2',
                 }
             },
             fontFamily: {
@@ -76,6 +78,7 @@ export default {
         },
     },
     plugins: [
-        require('@tailwindcss/typography'),
+        typography,
     ],
 }
+

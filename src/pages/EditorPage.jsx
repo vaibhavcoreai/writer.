@@ -5,10 +5,10 @@ import TextStyle from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
 import { FontSize } from '../components/Editor/Extensions/FontSize';
 import Toolbar from '../components/Editor/Toolbar';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import NavBar from '../components/NavBar';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUI } from '../context/UIContext';
 import { db } from '../firebase';
 import {
@@ -40,10 +40,29 @@ const EditorPage = () => {
 
     const isDistractionFree = focusMode && isTyping;
 
+    const editor = useEditor({
+        extensions: [
+            StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+            Placeholder.configure({ placeholder: 'Start writing your story...' }),
+            TextStyle,
+            FontFamily,
+            FontSize,
+        ],
+        content: '',
+        onUpdate: () => {
+            if (focusMode) setIsTyping(true);
+        },
+        editorProps: {
+            attributes: {
+                class: 'prose prose-lg prose-ink prose-p:font-serif prose-headings:font-serif focus:outline-none max-w-none text-ink leading-relaxed',
+            },
+        },
+    });
+
     // Load Draft if ID exists
     useEffect(() => {
         const loadDraft = async () => {
-            if (!docId || !user) return;
+            if (!docId || !user || !editor) return;
 
             try {
                 const docRef = doc(db, "stories", docId);
@@ -56,9 +75,11 @@ const EditorPage = () => {
                         return;
                     }
                     setTitle(data.title || '');
-                    setChapters(data.chapters || chapters);
-                    if (editor && data.chapters?.[0]?.content) {
-                        editor.commands.setContent(data.chapters[0].content);
+                    if (data.chapters && data.chapters.length > 0) {
+                        setChapters(data.chapters);
+                        if (editor) {
+                            editor.commands.setContent(data.chapters[0].content || '');
+                        }
                     }
                 }
             } catch (error) {
@@ -66,8 +87,8 @@ const EditorPage = () => {
             }
         };
 
-        if (editor) loadDraft();
-    }, [docId, user, editor]);
+        loadDraft();
+    }, [docId, user, editor, navigate]);
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -102,7 +123,7 @@ const EditorPage = () => {
         return () => window.removeEventListener('mousemove', handleActivity);
     }, [focusMode]);
 
-    const activeChapter = chapters[activeChapterIndex];
+    const activeChapter = chapters[activeChapterIndex] || { title: 'Chapter', subtitle: '', content: '' };
 
     const updateChapter = (updates) => {
         const newChapters = [...chapters];
@@ -199,24 +220,6 @@ const EditorPage = () => {
         }
     };
 
-    const editor = useEditor({
-        extensions: [
-            StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-            Placeholder.configure({ placeholder: 'Start writing your story...' }),
-            TextStyle,
-            FontFamily,
-            FontSize,
-        ],
-        content: '',
-        onUpdate: () => {
-            if (focusMode) setIsTyping(true);
-        },
-        editorProps: {
-            attributes: {
-                class: 'prose prose-lg prose-ink prose-p:font-serif prose-headings:font-serif focus:outline-none max-w-none text-ink leading-relaxed',
-            },
-        },
-    });
 
     if (loading || !user) return null;
 

@@ -13,6 +13,7 @@ import SettingsPage from './pages/SettingsPage';
 import LoadingScreen from './components/LoadingScreen';
 import PageLayout from './components/PageLayout';
 import CustomCursor from './components/CustomCursor';
+import ErrorBoundary from './components/ErrorBoundary';
 import { UIProvider } from './context/UIContext';
 
 function LandingPage() {
@@ -77,25 +78,27 @@ function App() {
   return (
     <AuthProvider>
       <UIProvider>
-        <CustomCursor />
-        {initialLoading && <LoadingScreen onComplete={() => setInitialLoading(false)} />}
-        <BrowserRouter>
-          <PageLayout>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<AuthPage />} />
-              <Route path="/signup" element={<AuthPage />} />
-              <Route path="/choose-type" element={<WritingTypePage />} />
-              <Route path="/drafts" element={<DraftsPage />} />
-              <Route path="/read" element={<FeedPage />} />
-              <Route path="/read/:id" element={<ReadPage />} />
-              <Route path="/write" element={<EditorPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/@:handle" element={<ProfilePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Routes>
-          </PageLayout>
-        </BrowserRouter>
+        <ErrorBoundary>
+          <CustomCursor />
+          {initialLoading && <LoadingScreen onComplete={() => setInitialLoading(false)} />}
+          <BrowserRouter>
+            <PageLayout>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/signup" element={<AuthPage />} />
+                <Route path="/choose-type" element={<WritingTypePage />} />
+                <Route path="/drafts" element={<DraftsPage />} />
+                <Route path="/read" element={<FeedPage />} />
+                <Route path="/read/:id" element={<ReadPage />} />
+                <Route path="/write" element={<EditorPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/@:handle" element={<ProfilePage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Routes>
+            </PageLayout>
+          </BrowserRouter>
+        </ErrorBoundary>
       </UIProvider>
     </AuthProvider>
   );
