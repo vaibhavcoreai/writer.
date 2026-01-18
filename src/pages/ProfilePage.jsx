@@ -30,8 +30,10 @@ const ProfilePage = () => {
     ]);
     const [isFetching, setIsFetching] = useState(true);
 
-    const isOwnProfile = !urlHandle || (currentUser && currentUser.handle === urlHandle);
-    const displayHandle = urlHandle || currentUser?.handle || 'writer';
+    // Filter the handle from URL (e.g., "@vaibhav" -> "vaibhav")
+    const cleanHandle = urlHandle?.startsWith('@') ? urlHandle.slice(1) : urlHandle;
+    const isOwnProfile = !cleanHandle || cleanHandle === 'profile' || (currentUser && currentUser.handle === cleanHandle);
+    const displayHandle = cleanHandle || currentUser?.handle || 'writer';
     const profileUrl = `${window.location.origin}/@${displayHandle}`;
 
     useEffect(() => {
@@ -43,9 +45,9 @@ const ProfilePage = () => {
                 let targetUser = null;
 
                 // 1. Resolve Target User
-                if (urlHandle) {
+                if (cleanHandle && cleanHandle !== 'profile') {
                     const usersRef = collection(db, "users");
-                    const qUser = query(usersRef, where("handle", "==", urlHandle), limit(1));
+                    const qUser = query(usersRef, where("handle", "==", cleanHandle), limit(1));
                     const userSnap = await getDocs(qUser);
 
                     if (!userSnap.empty) {
@@ -57,7 +59,7 @@ const ProfilePage = () => {
                         const qStoriesSync = query(
                             storiesRef,
                             where("status", "==", "published"),
-                            where("authorHandle", "==", urlHandle),
+                            where("authorHandle", "==", cleanHandle),
                             limit(1)
                         );
                         const syncSnap = await getDocs(qStoriesSync);
@@ -69,13 +71,13 @@ const ProfilePage = () => {
                                 uid: targetUid,
                                 name: data.authorName,
                                 avatarUrl: data.authorAvatar,
-                                handle: urlHandle
+                                handle: cleanHandle
                             };
                         } else {
                             // Deep Fallback: Email prefix match (limit to published for guest safety)
                             const qAll = query(storiesRef, where("status", "==", "published"), limit(100));
                             const allSnap = await getDocs(qAll);
-                            const found = allSnap.docs.find(d => d.data().authorEmail?.split('@')[0] === urlHandle);
+                            const found = allSnap.docs.find(d => d.data().authorEmail?.split('@')[0] === cleanHandle);
                             if (found) {
                                 const data = found.data();
                                 targetUid = data.authorId;
@@ -83,7 +85,7 @@ const ProfilePage = () => {
                                     uid: targetUid,
                                     name: data.authorName,
                                     avatarUrl: data.authorAvatar,
-                                    handle: urlHandle
+                                    handle: cleanHandle
                                 };
                             }
                         }

@@ -98,8 +98,8 @@ function App() {
                 <Route path="/read/:id" element={<ReadPage />} />
                 <Route path="/write" element={<EditorPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/@:handle" element={<ProfilePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/:handle" element={<ProfilePage />} />
               </Routes>
             </PageLayout>
           </BrowserRouter>
