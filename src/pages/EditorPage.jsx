@@ -132,26 +132,34 @@ const EditorPage = () => {
     };
 
     const addChapter = () => {
-        const newChapter = {
-            id: Date.now().toString(),
-            title: `Chapter ${chapters.length + 1}`,
-            subtitle: '',
-            content: ''
-        };
-        setChapters([...chapters, newChapter]);
-        setActiveChapterIndex(chapters.length);
-        editor?.commands.setContent('');
+        if (editor) {
+            const newChapters = [...chapters];
+            newChapters[activeChapterIndex] = { ...activeChapter, content: editor.getHTML() };
+
+            const newChapter = {
+                id: Date.now().toString(),
+                title: `Chapter ${newChapters.length + 1}`,
+                subtitle: '',
+                content: ''
+            };
+            setChapters([...newChapters, newChapter]);
+            setActiveChapterIndex(newChapters.length);
+            editor?.commands.setContent('');
+        }
     };
 
     const switchChapter = (index) => {
+        if (index === activeChapterIndex) return;
+
         if (editor) {
             const newChapters = [...chapters];
             newChapters[activeChapterIndex] = { ...activeChapter, content: editor.getHTML() };
             setChapters(newChapters);
+            editor?.commands.setContent(newChapters[index].content);
         }
+
         setActiveChapterIndex(index);
         setShowChapters(false);
-        editor?.commands.setContent(chapters[index].content);
     };
 
     const handleSave = async () => {
