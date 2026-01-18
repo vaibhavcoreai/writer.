@@ -24,7 +24,8 @@ const FeedPage = () => {
                 const q = query(
                     collection(db, "stories"),
                     where("status", "==", "published"),
-                    orderBy("updatedAt", "desc")
+                    orderBy("updatedAt", "desc"),
+                    limit(50)
                 );
 
                 const querySnapshot = await getDocs(q);
@@ -140,7 +141,13 @@ const FeedPage = () => {
                                         <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center text-[10px] font-bold text-ink-light">
                                             {post.authorName?.[0]}
                                         </div>
-                                        <span className="text-xs font-bold uppercase tracking-widest text-ink/70">{post.authorName}</span>
+                                        <Link
+                                            to={`/@${post.authorHandle || post.authorEmail?.split('@')[0] || 'writer'}`}
+                                            className="text-xs font-bold uppercase tracking-widest text-ink/70 hover:text-ink hover:underline decoration-ink/20 transition-all"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {post.authorName}
+                                        </Link>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-1.5 text-ink-lighter">
@@ -157,7 +164,9 @@ const FeedPage = () => {
 
                 {!loading && filteredFeed.length === 0 && (
                     <div className="text-center py-40 animate-reveal stagger-2">
-                        <p className="text-ink-lighter font-serif italic">The shelves are currently empty. Perhaps you’d like to add yours?</p>
+                        <p className="text-ink-lighter font-serif italic mb-4">
+                            {searchQuery ? "No matches found for your search." : "The library is currently quiet. Be the first to break the silence."}
+                        </p>
                         <Link to="/choose-type" className="mt-8 inline-block px-10 py-3 bg-ink text-paper rounded-full text-xs font-bold uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-xl">
                             Start Writing
                         </Link>

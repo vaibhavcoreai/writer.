@@ -48,15 +48,20 @@ function LandingPage() {
 
         {/* Buttons */}
         <div className={`flex flex-col md:flex-row gap-6 items-center transition-all duration-1000 ease-out delay-700 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <Link to="/choose-type" className="group relative px-8 py-4 bg-ink text-paper rounded-full font-sans font-medium text-sm tracking-wide overflow-hidden transition-transform hover:scale-105 active:scale-95 shadow-soft hover:shadow-lg inline-block">
+          <Link to="/choose-type" className="group relative px-10 py-4 bg-ink text-paper rounded-full font-sans font-bold text-xs uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-2xl hover:shadow-ink/20 inline-block">
             <span className="relative z-10">Start Writing</span>
-            <div className="absolute inset-0 bg-ink-light opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </Link>
 
-          <Link to="/read" className="px-8 py-4 text-ink font-sans font-medium text-sm tracking-wide border border-transparent hover:border-ink-lighter/20 rounded-full transition-all hover:bg-white/50 text-center">
-            Read Stories
+          <Link to="/read" className="group px-10 py-4 text-ink font-sans font-bold text-xs uppercase tracking-[0.2em] border border-ink/10 hover:border-ink/30 rounded-full transition-all hover:bg-white/50 text-center flex items-center gap-3">
+            <span>Explore Library</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-1"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
           </Link>
         </div>
+
+        <p className={`mt-12 text-[10px] uppercase tracking-[0.3em] font-bold text-ink-lighter transition-all duration-1000 delay-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+          Free to read. No account required.
+        </p>
 
       </main>
 

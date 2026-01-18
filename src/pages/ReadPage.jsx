@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
@@ -112,7 +112,12 @@ const ReadPage = () => {
                         </h1>
 
                         <div className="flex flex-col items-center gap-4">
-                            <span className="text-xs font-bold uppercase tracking-widest text-ink/70">By {story.authorName}</span>
+                            <Link
+                                to={`/@${story.authorHandle || story.authorEmail?.split('@')[0] || 'writer'}`}
+                                className="text-xs font-bold uppercase tracking-widest text-ink hover:underline decoration-ink/20 transition-all font-sans"
+                            >
+                                By {story.authorName}
+                            </Link>
                             <span className="text-[10px] uppercase tracking-widest text-ink-lighter font-medium italic">
                                 Published on {story.updatedAt?.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                             </span>
