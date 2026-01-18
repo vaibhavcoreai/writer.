@@ -8,7 +8,7 @@ import { doc, getDoc, updateDoc, serverTimestamp, arrayUnion, arrayRemove } from
 const ReadPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [story, setStory] = useState(null);
     const [loading, setLoading] = useState(true);
     const [loaded, setLoaded] = useState(false);
@@ -67,6 +67,8 @@ const ReadPage = () => {
 
     useEffect(() => {
         const fetchStory = async () => {
+            if (authLoading) return;
+
             try {
                 const docRef = doc(db, "stories", id);
                 const docSnap = await getDoc(docRef);
@@ -86,7 +88,7 @@ const ReadPage = () => {
         };
 
         fetchStory();
-    }, [id, navigate]);
+    }, [id, navigate, authLoading]);
 
     if (loading) {
         return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import NavBar from '../components/NavBar';
+import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import {
     collection,
@@ -12,6 +13,7 @@ import {
 
 const FeedPage = () => {
     const navigate = useNavigate();
+    const { loading: authLoading } = useAuth();
     const [loaded, setLoaded] = useState(false);
     const [activeTab, setActiveTab] = useState('All');
     const [publicFeed, setPublicFeed] = useState([]);
@@ -20,6 +22,8 @@ const FeedPage = () => {
 
     useEffect(() => {
         const fetchFeed = async () => {
+            if (authLoading) return;
+
             try {
                 // Fetch published stories (moving sorting to client-side to avoid index requirement)
                 const q = query(
@@ -59,7 +63,7 @@ const FeedPage = () => {
         };
 
         fetchFeed();
-    }, []);
+    }, [authLoading]);
 
     const filteredFeed = publicFeed.filter(post => {
         const matchesTab = activeTab === 'All' || post.type?.toLowerCase() === activeTab.toLowerCase();
@@ -126,10 +130,10 @@ const FeedPage = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
                         {filteredFeed.map((post, index) => (
-                            <Link
-                                to={`/read/${post.id}`}
+                            <div
+                                onClick={() => navigate(`/read/${post.id}`)}
                                 key={post.id}
-                                className={`group bg-paper-dark/30 hover:bg-white p-8 md:p-10 rounded-3xl border border-white/50 shadow-soft hover:shadow-2xl transition-all duration-500 flex flex-col justify-between h-[360px]
+                                className={`group bg-paper-dark/30 hover:bg-white p-8 md:p-10 rounded-3xl border border-white/50 shadow-soft hover:shadow-2xl transition-all duration-500 flex flex-col justify-between h-[360px] cursor-pointer
                                     ${loaded ? 'animate-reveal' : 'opacity-0'}
                                 `}
                                 style={{ animationDelay: `${0.8 + index * 0.1}s` }}
@@ -156,7 +160,7 @@ const FeedPage = () => {
                                         </div>
                                         <Link
                                             to={`/@${post.authorHandle || post.authorEmail?.split('@')[0] || 'writer'}`}
-                                            className="text-xs font-bold uppercase tracking-widest text-ink/70 hover:text-ink hover:underline decoration-ink/20 transition-all"
+                                            className="text-xs font-bold uppercase tracking-widest text-ink/70 hover:text-ink hover:underline decoration-ink/20 transition-all font-sans relative z-10"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             {post.authorName}
@@ -170,7 +174,7 @@ const FeedPage = () => {
                                         <span className="text-[10px] font-bold text-ink-lighter uppercase tracking-widest">{post.date}</span>
                                     </div>
                                 </div>
-                            </Link>
+                            </div>
                         ))}
                     </div>
                 )}
