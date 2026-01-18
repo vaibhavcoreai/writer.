@@ -34,6 +34,7 @@ const EditorPage = () => {
     ]);
     const [activeChapterIndex, setActiveChapterIndex] = useState(0);
     const [showChapters, setShowChapters] = useState(false);
+    const titleRef = useRef(null);
     const [saveStatus, setSaveStatus] = useState('idle');
     const [isPublishing, setIsPublishing] = useState(false);
     const subtitleRef = useRef(null);
@@ -75,6 +76,14 @@ const EditorPage = () => {
                         return;
                     }
                     setTitle(data.title || '');
+                    // Initial resize for long titles
+                    setTimeout(() => {
+                        if (titleRef.current) {
+                            titleRef.current.style.height = 'auto';
+                            titleRef.current.style.height = titleRef.current.scrollHeight + 'px';
+                        }
+                    }, 100);
+
                     if (data.chapters && data.chapters.length > 0) {
                         setChapters(data.chapters);
                         if (editor) {
@@ -259,43 +268,55 @@ const EditorPage = () => {
                     className={`max-w-3xl w-full min-h-[85vh] bg-paper shadow-xl rounded-sm p-6 md:p-16 border border-white/40 transition-all duration-700 relative cursor-text ${isDistractionFree ? 'shadow-2xl scale-[1.01]' : 'shadow-xl'}`}
                 >
                     {/* Controls */}
-                    <div className={`flex items-center justify-end mb-8 md:absolute md:top-6 md:right-6 md:mb-0 gap-3 transition-opacity duration-700 ${isDistractionFree ? 'opacity-0 md:hover:opacity-100' : 'opacity-100'}`}>
-                        <button
-                            onClick={handleSave}
-                            disabled={saveStatus === 'saving'}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold text-ink-light hover:text-ink hover:bg-black/5 transition-all bg-paper/50 border border-ink-lighter/5"
-                        >
-                            {saveStatus === 'saving' ? (
-                                <div className="w-3 h-3 border-2 border-ink-lighter border-t-transparent rounded-full animate-spin"></div>
-                            ) : saveStatus === 'saved' ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M20 6 9 17l-5-5"></path></svg>
-                            ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                            )}
-                            <span>{saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Save Draft'}</span>
-                        </button>
+                    <div className={`flex items-center justify-between mb-12 gap-3 transition-opacity duration-700 ${isDistractionFree ? 'opacity-0 md:hover:opacity-100' : 'opacity-100'}`}>
+                        <div className="flex-1"></div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleSave}
+                                disabled={saveStatus === 'saving'}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold text-ink-light hover:text-ink hover:bg-black/5 transition-all bg-paper/50 border border-ink-lighter/5"
+                            >
+                                {saveStatus === 'saving' ? (
+                                    <div className="w-3 h-3 border-2 border-ink-lighter border-t-transparent rounded-full animate-spin"></div>
+                                ) : saveStatus === 'saved' ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M20 6 9 17l-5-5"></path></svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                )}
+                                <span>{saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Save Draft'}</span>
+                            </button>
 
-                        <button
-                            onClick={handlePublish}
-                            disabled={isPublishing}
-                            className="px-4 py-1.5 bg-ink text-paper rounded-full text-[10px] uppercase tracking-widest font-bold hover:scale-105 transition-all shadow-soft flex items-center gap-2"
-                        >
-                            {isPublishing ? (
-                                <div className="w-3 h-3 border-2 border-paper border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-                            )}
-                            <span>Publish</span>
-                        </button>
+                            <button
+                                onClick={handlePublish}
+                                disabled={isPublishing}
+                                className="px-4 py-1.5 bg-ink text-paper rounded-full text-[10px] uppercase tracking-widest font-bold hover:scale-105 transition-all shadow-soft flex items-center gap-2"
+                            >
+                                {isPublishing ? (
+                                    <div className="w-3 h-3 border-2 border-paper border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                )}
+                                <span>Publish</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Header */}
                     <div className="mb-8 space-y-4">
                         <textarea
+                            ref={titleRef}
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            onChange={(e) => {
+                                setTitle(e.target.value);
+                                e.target.style.height = 'auto';
+                                e.target.style.height = e.target.scrollHeight + 'px';
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.height = 'auto';
+                                e.target.style.height = e.target.scrollHeight + 'px';
+                            }}
                             placeholder="Untitled Story"
-                            className="w-full text-4xl md:text-5xl font-bold font-serif bg-transparent border-none outline-none placeholder:text-ink-lighter/30 resize-none overflow-hidden"
+                            className="w-full text-4xl md:text-6xl font-bold font-serif bg-transparent border-none outline-none placeholder:text-ink-lighter/30 resize-none overflow-hidden leading-tight"
                             rows={1}
                         />
 
