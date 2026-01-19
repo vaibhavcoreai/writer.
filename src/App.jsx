@@ -15,6 +15,11 @@ import PageLayout from './components/PageLayout';
 import CustomCursor from './components/CustomCursor';
 import ErrorBoundary from './components/ErrorBoundary';
 import { UIProvider } from './context/UIContext';
+import ReactGA from 'react-ga4';
+import AnalyticsTracker from './components/AnalyticsTracker';
+
+// Initialize Google Analytics
+ReactGA.initialize("G-469RJBRN32");
 
 function LandingPage() {
   const [loaded, setLoaded] = useState(false)
@@ -87,6 +92,7 @@ function App() {
           <CustomCursor />
           {initialLoading && <LoadingScreen onComplete={() => setInitialLoading(false)} />}
           <BrowserRouter>
+            <AnalyticsTracker />
             <PageLayout>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
