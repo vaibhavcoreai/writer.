@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "735883548830",
+    "project_id": "forwriter-54945",
+    "storage_bucket": "forwriter-54945.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735883548830:android:67c24d45d71d59e7d2438f",
+        "android_client_info": {
+          "package_name": "com.writer.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "735883548830-o0vt2nngkarr0f6onb9rb4s0ubbtarad.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.writer.app",
+            "certificate_hash": "8650b07d7d320334511e81fde2a36f7b463e62fb"
+          }
+        },
+        {
+          "client_id": "735883548830-gckuv814p6ahcvrosovlpch0g2u5tkd4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDi8ArwCu2-lvbpNt4t7SGFjMs5l1Qt_zU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "735883548830-gckuv814p6ahcvrosovlpch0g2u5tkd4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
