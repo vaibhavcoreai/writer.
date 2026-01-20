@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
-import { doc, getDoc, updateDoc, serverTimestamp, arrayUnion, arrayRemove, collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, arrayUnion, arrayRemove, collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 
 const ReadPage = () => {
     const { id } = useParams();
@@ -14,6 +14,8 @@ const ReadPage = () => {
     const [loaded, setLoaded] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+    const [showChapterMenu, setShowChapterMenu] = useState(false);
 
     const unpublishStory = async () => {
         if (!user || user.uid !== story.authorId) {
@@ -105,6 +107,28 @@ const ReadPage = () => {
         }
     };
 
+    const saveProgress = async (index) => {
+        if (!user || !id) return;
+        try {
+            const progressRef = doc(db, "reading_progress", `${user.uid}_${id}`);
+            await setDoc(progressRef, {
+                userId: user.uid,
+                storyId: id,
+                lastChapterIndex: index,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+        } catch (err) {
+            console.error("Error saving progress:", err);
+        }
+    };
+
+    const handleChapterChange = (index) => {
+        setCurrentChapterIndex(index);
+        setShowChapterMenu(false);
+        saveProgress(index);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     useEffect(() => {
         const fetchStory = async () => {
             if (authLoading) return;
@@ -114,7 +138,21 @@ const ReadPage = () => {
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    setStory(docSnap.data());
+                    const data = docSnap.data();
+                    setStory(data);
+
+                    // Fetch Progress ONLY after story exists
+                    if (user) {
+                        const progressRef = doc(db, "reading_progress", `${user.uid}_${id}`);
+                        const progSnap = await getDoc(progressRef);
+                        if (progSnap.exists()) {
+                            const savedIndex = progSnap.data().lastChapterIndex;
+                            // Ensure saved index is valid for current story
+                            if (data.chapters && savedIndex < data.chapters.length) {
+                                setCurrentChapterIndex(savedIndex);
+                            }
+                        }
+                    }
                 } else {
                     console.error("No such story!");
                     navigate('/read');
@@ -197,23 +235,89 @@ const ReadPage = () => {
                         </div>
                     </header>
 
-                    {/* Content */}
-                    <div className={`space-y-16 ${loaded ? 'animate-reveal stagger-body' : 'opacity-0'}`}>
-                        {story.chapters?.map((chapter, index) => (
-                            <section key={index} className="prose prose-lg md:prose-xl prose-ink prose-p:font-serif prose-headings:font-serif max-w-none">
-                                {story.chapters.length > 1 && (
-                                    <div className="mb-12 flex items-center gap-6">
-                                        <span className="text-xs uppercase tracking-[0.3em] font-bold text-ink-lighter shrink-0">{chapter.title}</span>
-                                        <div className="h-[1px] w-full bg-ink-lighter/10"></div>
-                                    </div>
-                                )}
-                                {chapter.subtitle && (
-                                    <h2 className="text-2xl italic text-ink-light mb-8">{chapter.subtitle}</h2>
-                                )}
-                                <div dangerouslySetInnerHTML={{ __html: chapter.content }} className="leading-relaxed md:leading-[1.8] text-ink/90" />
-                            </section>
-                        ))}
+                    {/* Chapter Navigation */}
+                    <div className="flex items-center justify-between mb-12 border-b border-ink/5 pb-8 relative">
+                        <div className="flex flex-col items-start gap-1">
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-lighter">Chapter</span>
+                            <button
+                                onClick={() => setShowChapterMenu(!showChapterMenu)}
+                                className="flex items-center gap-2 group"
+                            >
+                                <span className="text-xl font-serif font-bold text-ink group-hover:text-ink-light transition-colors">
+                                    {story.chapters?.[currentChapterIndex]?.title || `Chapter ${currentChapterIndex + 1}`}
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={`text-ink-lighter transition-transform ${showChapterMenu ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6"></path></svg>
+                            </button>
+                        </div>
+
+                        {showChapterMenu && (
+                            <div className="absolute top-full left-0 mt-4 w-64 bg-paper border border-ink-lighter/10 shadow-2xl rounded-2xl p-4 z-50 animate-fade-in origin-top-left">
+                                <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-ink-lighter mb-4 px-2">Table of Contents</h4>
+                                <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                                    {story.chapters?.map((ch, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleChapterChange(idx)}
+                                            className={`w-full text-left px-3 py-3 rounded-xl text-sm font-serif transition-colors flex flex-col gap-0.5
+                                                ${currentChapterIndex === idx ? 'bg-ink text-paper' : 'hover:bg-black/5 text-ink-light'}
+                                            `}
+                                        >
+                                            <span className="font-bold">{ch.title || `Chapter ${idx + 1}`}</span>
+                                            {ch.subtitle && <span className={`text-[10px] italic opacity-60 truncate ${currentChapterIndex === idx ? 'text-paper' : 'text-ink-lighter'}`}>{ch.subtitle}</span>}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex gap-3">
+                            <button
+                                disabled={currentChapterIndex === 0}
+                                onClick={() => handleChapterChange(currentChapterIndex - 1)}
+                                className="p-3 rounded-full hover:bg-black/5 text-ink-lighter hover:text-ink disabled:opacity-20 disabled:hover:bg-transparent transition-all"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+                            </button>
+                            <button
+                                disabled={!story.chapters || currentChapterIndex === story.chapters.length - 1}
+                                onClick={() => handleChapterChange(currentChapterIndex + 1)}
+                                className="p-3 rounded-full hover:bg-black/5 text-ink-lighter hover:text-ink disabled:opacity-20 disabled:hover:bg-transparent transition-all"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6 6-6" transform="rotate(180 12 12)"></path></svg>
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Active Chapter Content Only */}
+                    <div className={`space-y-16 ${loaded ? 'animate-reveal stagger-body' : 'opacity-0'}`}>
+                        {story.chapters && story.chapters[currentChapterIndex] ? (
+                            <section className="prose prose-lg md:prose-xl prose-ink prose-p:font-serif prose-headings:font-serif max-w-none">
+                                {story.chapters[currentChapterIndex].subtitle && (
+                                    <h2 className="text-2xl italic text-ink-light mb-8">{story.chapters[currentChapterIndex].subtitle}</h2>
+                                )}
+                                <div
+                                    dangerouslySetInnerHTML={{ __html: story.chapters[currentChapterIndex].content }}
+                                    className="leading-relaxed md:leading-[1.8] text-ink/90 first-letter:text-5xl first-letter:font-serif first-letter:mr-3 first-letter:float-left first-letter:text-ink"
+                                />
+                            </section>
+                        ) : (
+                            <div className="text-center py-20 italic text-ink-lighter">This story has no content.</div>
+                        )}
+                    </div>
+
+                    {/* Next Chapter Prompt */}
+                    {story.chapters && currentChapterIndex < story.chapters.length - 1 && (
+                        <div className="mt-20 p-8 rounded-3xl bg-paper-dark/30 border border-white/50 text-center animate-reveal">
+                            <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-ink-lighter block mb-4">Finished this chapter?</span>
+                            <button
+                                onClick={() => handleChapterChange(currentChapterIndex + 1)}
+                                className="px-8 py-3 bg-ink text-paper rounded-full text-xs font-bold uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-lg inline-flex items-center gap-3"
+                            >
+                                Next: {story.chapters[currentChapterIndex + 1].title || `Chapter ${currentChapterIndex + 2}`}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                            </button>
+                        </div>
+                    )}
 
                     {/* Footer */}
                     <footer className="mt-32 pt-16 border-t border-ink-lighter/10 flex flex-col items-center">
