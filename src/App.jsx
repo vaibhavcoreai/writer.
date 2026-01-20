@@ -13,6 +13,7 @@ import SettingsPage from './pages/SettingsPage';
 import LoadingScreen from './components/LoadingScreen';
 import PageLayout from './components/PageLayout';
 import CustomCursor from './components/CustomCursor';
+import PrivacyPage from './pages/PrivacyPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { UIProvider } from './context/UIContext';
 import ReactGA from 'react-ga4';
@@ -73,7 +74,11 @@ function LandingPage() {
       {/* Footer / Copyright */}
       <footer className={`absolute bottom-6 w-full text-center text-xs text-ink-lighter/60 transition-all duration-1000 delay-1000 z-20 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
         <p className="mb-1">© 2026 Writer Inc.</p>
-        <p>Crafted by <a href="https://vaibhavmanaji.vercel.app" target="_blank" rel="noopener noreferrer" className="text-ink-lighter hover:text-ink transition-colors border-b border-ink-lighter/20 hover:border-ink/40 pointer-events-auto cursor-pointer">Vaibhav Manaji</a></p>
+        <p className="mb-1">
+          Crafted by <a href="https://vaibhavmanaji.vercel.app" target="_blank" rel="noopener noreferrer" className="text-ink-lighter hover:text-ink transition-colors border-b border-ink-lighter/20 hover:border-ink/40 pointer-events-auto cursor-pointer">Vaibhav Manaji</a>
+          <span className="mx-2">•</span>
+          <Link to="/privacy" className="text-ink-lighter hover:text-ink transition-colors border-b border-ink-lighter/20 hover:border-ink/40">Privacy Policy</Link>
+        </p>
       </footer>
 
     </div>
@@ -117,6 +122,7 @@ function AppContent() {
         <Route path="/write" element={<EditorPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/:handle" element={<ProfilePage />} />
       </Routes>
     </PageLayout>

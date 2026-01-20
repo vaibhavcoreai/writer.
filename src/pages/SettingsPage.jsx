@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar';
 import { useUI } from '../context/UIContext';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 const SettingsPage = () => {
     const { darkMode, toggleDarkMode, focusMode, toggleFocusMode } = useUI();
@@ -79,6 +80,16 @@ const SettingsPage = () => {
                     label: 'Email',
                     description: user?.email || 'guest@writer.paper',
                     action: <button className="text-xs uppercase tracking-widest font-bold text-ink-light hover:text-ink border-b border-ink/10">Edit</button>
+                }
+            ]
+        },
+        {
+            title: 'Legal',
+            items: [
+                {
+                    label: 'Privacy Policy',
+                    description: 'Learn how we protect your sanctuary.',
+                    action: <Link to="/privacy" className="text-xs uppercase tracking-widest font-bold text-ink-light hover:text-ink border-b border-ink/10">View</Link>
                 }
             ]
         }
